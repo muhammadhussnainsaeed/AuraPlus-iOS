@@ -5,7 +5,7 @@ struct ChatRoomView: View {
         ScrollView {
             LazyVStack {
                 ForEach(0..<12) { _ in
-                    Text("sample")
+                    Text("samples")
                         .font(.largeTitle)
                         .bold()
                         .frame(maxWidth: .infinity)
