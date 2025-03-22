@@ -22,6 +22,7 @@ struct HomeView: View {
                     Text(Tab.settings.title)
                 }
         }
+        .background(.white)
     }
 }
 

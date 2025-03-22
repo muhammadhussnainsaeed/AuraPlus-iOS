@@ -12,10 +12,71 @@ struct ChatsView: View {
     var body: some View {
             NavigationStack {
                 List {
-                    
-                    ChatItemView(name: "Umer", lastmessage: "What's going on?", time: "01:00 PM")
-                    
-                    ChatItemView(name: "Ali", lastmessage: "hello ", time: "12:20 PM")
+                    NavigationLink{
+                        ChatRoomView()
+                    }label:{
+                        ChatItemView(name: "Umer", lastmessage: "What's going on?", time: "01:00 PM")
+                    }
+                    NavigationLink{
+                        ChatRoomView()
+                    }label:{
+                        ChatItemView(name: "Ali", lastmessage: "hello ", time: "12:20 PM")
+                    }
+                    NavigationLink{
+                        ChatRoomView()
+                    }label:{
+                        ChatItemView(name: "Ali", lastmessage: "hello ", time: "12:20 PM")
+                    }
+                    NavigationLink{
+                        ChatRoomView()
+                    }label:{
+                        ChatItemView(name: "Ali", lastmessage: "hello ", time: "12:20 PM")
+                    }
+                    NavigationLink{
+                        ChatRoomView()
+                    }label:{
+                        ChatItemView(name: "Ali", lastmessage: "hello ", time: "12:20 PM")
+                    }
+                    NavigationLink{
+                        ChatRoomView()
+                    }label:{
+                        ChatItemView(name: "Ali", lastmessage: "hello ", time: "12:20 PM")
+                    }
+                    NavigationLink{
+                        ChatRoomView()
+                    }label:{
+                        ChatItemView(name: "Ali", lastmessage: "hello ", time: "12:20 PM")
+                    }
+                    NavigationLink{
+                        ChatRoomView()
+                    }label:{
+                        ChatItemView(name: "Ali", lastmessage: "hello ", time: "12:20 PM")
+                    }
+                    NavigationLink{
+                        ChatRoomView()
+                    }label:{
+                        ChatItemView(name: "Ali", lastmessage: "hello ", time: "12:20 PM")
+                    }
+                    NavigationLink{
+                        ChatRoomView()
+                    }label:{
+                        ChatItemView(name: "Ali", lastmessage: "hello ", time: "12:20 PM")
+                    }
+                    NavigationLink{
+                        ChatRoomView()
+                    }label:{
+                        ChatItemView(name: "Ali", lastmessage: "hello ", time: "12:20 PM")
+                    }
+                    NavigationLink{
+                        ChatRoomView()
+                    }label:{
+                        ChatItemView(name: "Ali", lastmessage: "hello ", time: "12:20 PM")
+                    }
+                    NavigationLink{
+                        ChatRoomView()
+                    }label:{
+                        ChatItemView(name: "Ali", lastmessage: "hello ", time: "12:20 PM")
+                    }
                     
                     inboxFooterView()
                         .listRowSeparator(.hidden)
