@@ -82,6 +82,8 @@ struct ChatsView: View {
                         .listRowSeparator(.hidden)
                     
                 }
+                .navigationTitle("")
+                .navigationBarTitleDisplayMode(.inline)
                 .navigationTitle("Chats")
                 .searchable(text: $searchText)
                 .toolbar {
