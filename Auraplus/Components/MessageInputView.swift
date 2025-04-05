@@ -4,7 +4,7 @@ struct MessageInputView: View {
     @State private var text = ""
     
     var body: some View {
-        HStack(alignment: .center, spacing: 10) { // Adjusted alignment and spacing
+        HStack(alignment: .center, spacing: 8) { // Adjusted alignment and spacing
             imagePickerButton()
             messsageTextField()
             audioRecoderButton()
@@ -13,14 +13,14 @@ struct MessageInputView: View {
         .padding(.bottom)
         .padding(.horizontal, 8)
         .padding(.top, 10)
-        .background(Color.white)
+        .background(ignoresSafeAreaEdges: .bottom)
     }
     
     private func messsageTextField() -> some View {
         TextField("Type a message...", text: $text, axis: .vertical)
             .padding(8)
             .background(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
                     .fill(.thinMaterial)
             )
     }
@@ -30,15 +30,9 @@ struct MessageInputView: View {
             // Action for image picker button
         } label: {
             Image(systemName: "plus")
-//                .font(.system(size: 20))
-//                .imageScale(.medium)
-//                .padding(8)
                 .fontWeight(.bold)
-                .imageScale(.small)
-                .foregroundStyle(.white)
-                .padding(10)
-                .background(Color.blue)
-                .clipShape(Circle())
+                .imageScale(.large)
+                .padding(4)
         }
     }
     
@@ -46,13 +40,10 @@ struct MessageInputView: View {
         Button {
             // Action for send button
         } label: {
-            Image(systemName: "arrow.up")
-                .fontWeight(.bold)
-                .imageScale(.small)
-                .foregroundStyle(.white)
-                .padding(10)
-                .background(Color.blue)
-                .clipShape(Circle())
+            Image(systemName: "arrow.up.circle.fill")
+                .font(.system(size: 22, weight: .bold))
+                .imageScale(.large)
+                .padding(4)
         }
     }
     
@@ -62,11 +53,8 @@ struct MessageInputView: View {
         } label: {
             Image(systemName: "microphone.fill")
                 .fontWeight(.bold)
-                .imageScale(.small)
-                .foregroundStyle(.white)
-                .padding(10)
-                .background(Color.blue)
-                .clipShape(Circle())
+                .imageScale(.large)
+                .padding(7)
         }
     }
 }

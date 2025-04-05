@@ -43,7 +43,7 @@ struct LoginView: View {
                     .padding(.top,25)
                 //signin btn
                 Button {
-                    print("login")
+                    
                 } label: {
                     Text("Sign In")
                         .fontWeight(.bold)

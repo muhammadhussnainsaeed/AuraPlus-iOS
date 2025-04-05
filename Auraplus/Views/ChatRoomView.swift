@@ -2,43 +2,30 @@ import SwiftUI
 
 struct ChatRoomView: View {
     var body: some View {
-        ScrollView {
-            LazyVStack {
-                ForEach(0..<50) { _ in
-                    Text("sample")
-                        .font(.largeTitle)
-                        .bold()
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 200)
-                        .background(Color.gray.opacity(0.1))
-                }
+        MessageListView()
+            .toolbar(.hidden, for: .tabBar)
+            .toolbar {
+                chatHeaderToolbar()
             }
-        }
-        .toolbar(.hidden,for: .tabBar)
-        .toolbar{
-            leadingNavItems()
-        }
-        .safeAreaInset(edge: .bottom){
-            MessageInputView()
-        }
+            .navigationBarTitle("")
+            .navigationBarTitleDisplayMode(.inline)
+            .safeAreaInset(edge: .bottom) {
+                MessageInputView()
+            }
     }
 }
 
 extension ChatRoomView {
     @ToolbarContentBuilder
-    private func leadingNavItems() -> some ToolbarContent {
+    private func chatHeaderToolbar() -> some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
-            HStack {
-                Image(systemName: "person.crop.circle.fill")
-                    .foregroundColor(.gray)
-                    .font(.system(size: 30))
-                Text("Umer")
-                    .bold()
-            }
+            ChatHeaderView(username: "Umer", status: .online, typingStatus: .stoppedTyping)
         }
     }
 }
 
 #Preview {
-    ChatRoomView()
+    NavigationStack {
+        ChatRoomView()
+    }
 }
