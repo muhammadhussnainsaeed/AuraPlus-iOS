@@ -19,7 +19,6 @@ struct MessageListView: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: MessageListController, context: Context) {
         
     }
-    
 }
 
 #Preview {

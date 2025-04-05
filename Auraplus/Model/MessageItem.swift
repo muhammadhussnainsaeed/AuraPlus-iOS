@@ -6,6 +6,7 @@
 //
 
 import Foundation
+
 import SwiftUI
 
 struct MessageItem: Identifiable {
@@ -46,6 +47,7 @@ struct MessageItem: Identifiable {
 
 enum MessageType {
     case text, photo, video, audio
+
 }
 
 enum MessageDirection {

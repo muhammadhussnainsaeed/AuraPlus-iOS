@@ -37,4 +37,5 @@ struct BubbleTextView: View {
 #Preview {
     BubbleTextView(item: .sentplaceholder)
     BubbleTextView(item: .receivedplaceholder)
+
 }
