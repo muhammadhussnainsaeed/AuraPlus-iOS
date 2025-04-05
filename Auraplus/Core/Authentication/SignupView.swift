@@ -6,7 +6,9 @@ import SwiftUI
 
 struct SignupView: View {
     @State var user: String = ""
-    @State var password: String = ""
+    @State var password1: String = ""
+    @State var password2: String = ""
+
     @Environment(\.dismiss) var dismiss
     var body: some View {
         NavigationStack{
@@ -24,13 +26,16 @@ struct SignupView: View {
                     InputView(text: $user, title: "Username", placeholder: "Choose your username")
                         .autocorrectionDisabled()
                         .autocapitalization(.none)
-                    InputView(text: $password,
+                    InputView(text: $user, title: "Name", placeholder: "Enter your name")
+                        .autocorrectionDisabled()
+                        .autocapitalization(.none)
+                    InputView(text: $password1,
                               title: "Password",
                               placeholder: "Enter your password",
                               isSecureTextEntry: true)
                         .autocorrectionDisabled()
                         .padding(.top,12)
-                    InputView(text: $password,
+                    InputView(text: $password2,
                               title: "Confirm Password",
                               placeholder: "Confirm your password",
                               isSecureTextEntry: true)

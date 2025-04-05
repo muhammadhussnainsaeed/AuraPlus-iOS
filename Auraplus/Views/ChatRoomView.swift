@@ -3,31 +3,29 @@ import SwiftUI
 struct ChatRoomView: View {
     var body: some View {
         MessageListView()
-        .toolbar(.hidden,for: .tabBar)
-        .toolbar{
-            leadingNavItems()
-        }
-        .safeAreaInset(edge: .bottom){
-            MessageInputView()
-        }
+            .toolbar(.hidden, for: .tabBar)
+            .toolbar {
+                chatHeaderToolbar()
+            }
+            .navigationBarTitle("")
+            .navigationBarTitleDisplayMode(.inline)
+            .safeAreaInset(edge: .bottom) {
+                MessageInputView()
+            }
     }
 }
 
 extension ChatRoomView {
     @ToolbarContentBuilder
-    private func leadingNavItems() -> some ToolbarContent {
+    private func chatHeaderToolbar() -> some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
-            HStack {
-                Image(systemName: "person.crop.circle.fill")
-                    .foregroundColor(.gray)
-                    .font(.system(size: 30))
-                Text("Umer")
-                    .bold()
-            }
+            ChatHeaderView(username: "Umer", status: .online, typingStatus: .stoppedTyping)
         }
     }
 }
 
 #Preview {
-    ChatRoomView()
+    NavigationStack {
+        ChatRoomView()
+    }
 }

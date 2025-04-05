@@ -16,7 +16,6 @@ struct InputView: View {
         VStack(alignment: .leading, spacing: 12){
             Text(title)
                 .font(.system(size: 16))
-                .foregroundColor(Color(.darkGray))
                 .fontWeight(.bold)
                 .font(.footnote)
                 .fontDesign(.default)

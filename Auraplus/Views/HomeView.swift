@@ -8,6 +8,10 @@
 import SwiftUI
 
 struct HomeView: View {
+    init(){
+        let thumbImage = UIImage(systemName: "circle.fill")!
+        UISlider.appearance().setThumbImage(thumbImage, for: .normal)
+    }
     var body: some View {
         TabView{
             ChatsView()

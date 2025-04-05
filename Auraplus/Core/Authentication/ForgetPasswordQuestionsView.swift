@@ -1,19 +1,18 @@
 //
-//  SecurityQuestionsView.swift
+//  ForgetPasswordQuestionsView.swift
 //  Auraplus
 //
-//  Created by Hussnain on 8/3/25.
+//  Created by Hussnain on 22/3/25.
 //
 
 import SwiftUI
 
-struct SecurityQuestionsView: View {
+struct ForgetPasswordQuestionsView: View {
     @State var ques1: String = ""
     @State var ques2: String = ""
     @State var ques3: String = ""
     @State var ques4: String = ""
     @State var ques5: String = ""
-    @Environment(\.dismiss) var dismiss
     var body: some View {
         NavigationStack{
             VStack{
@@ -21,7 +20,7 @@ struct SecurityQuestionsView: View {
                     .font(.system(size: 19))
                     .fontWeight(.bold)
                     .padding(.top,70)
-                Text("These questions help verify your identity in case you need to recover your account.")
+                Text("Answer these questions as you entered them when you created your account.")
                     .multilineTextAlignment(.center)
                     .font(.system(.caption))
                     .fontWeight(.light)
@@ -49,9 +48,9 @@ struct SecurityQuestionsView: View {
                 
                 //signin btn
                 Button {
-                    dismiss()
+
                 } label: {
-                    Text("SignUp")
+                    Text("Forget Password")
                         .fontWeight(.bold)
                         .foregroundColor(.blue)
                         .font(.system(size: 16))
@@ -65,5 +64,5 @@ struct SecurityQuestionsView: View {
 }
 
 #Preview {
-    SecurityQuestionsView()
+    ForgetPasswordQuestionsView()
 }
