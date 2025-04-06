@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ChatsView: View {
     @State private var searchText = ""
+    @State private var showChatPartnerPickerView = false
     var body: some View {
             NavigationStack {
                 List {
@@ -17,14 +18,12 @@ struct ChatsView: View {
                     }label:{
                         ChatItemView(name: "Umer", lastmessage: "What's going on?", time: "01:00 PM")
                     }
-                    .navigationBarTitle("")
                     
                     NavigationLink{
                         ChatRoomView()
                     }label:{
                         ChatItemView(name: "Ali", lastmessage: "hello ", time: "12:20 PM")
                     }
-                    .navigationBarTitle("")
                     
                     inboxFooterView()
                         .listRowSeparator(.hidden)
@@ -35,6 +34,9 @@ struct ChatsView: View {
                 .toolbar {
                     trailingNavItems()
                     lendingNavItems()
+                }
+                .sheet(isPresented: $showChatPartnerPickerView){
+                    ChatPartnerPickerView()
                 }
             }
         }
@@ -80,7 +82,7 @@ struct ChatsView: View {
 
         private func newChatButton() -> some View {
             Button{
-                // Action for new chat
+                showChatPartnerPickerView = true
             }
             label: {
                 Image(systemName: "plus.circle.fill")

@@ -10,6 +10,7 @@ import SwiftUI
 struct SettingsView: View {
     @State var user: String = ""
     @State var password: String = ""
+    @State private var searchText = ""
     var body: some View {
         NavigationStack{
             List{
@@ -58,6 +59,7 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
+            .searchable(text: $searchText)
         }
     }
 }

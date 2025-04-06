@@ -23,7 +23,7 @@ struct SettingItemView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
             
             Text(title)
-                .font(.system(size: 18))
+                .font(.system(size: 16))
             
             Spacer()
             
