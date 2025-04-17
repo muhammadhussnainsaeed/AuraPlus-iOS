@@ -14,9 +14,9 @@ struct SignupView: View {
         NavigationStack{
             VStack{
                 //image
-                Image("aura+")
+                Image("Auralogo")
                     .resizable()
-                    .frame(width: 250, height: 75)
+                    .frame(width: 250, height: 77)
                     .padding()
                     .padding(.top,30)
                     .padding(.bottom,75)
