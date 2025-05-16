@@ -34,9 +34,22 @@
 		138C39D42DB154B70091A49E /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		1329447B2DC5DB8E00A47844 /* Exceptions for "Auraplus" folder in "Auraplus" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 1386A60B2D7B366000BAB954 /* Auraplus */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1386A60E2D7B366000BAB954 /* Auraplus */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1329447B2DC5DB8E00A47844 /* Exceptions for "Auraplus" folder in "Auraplus" target */,
+			);
 			path = Auraplus;
 			sourceTree = "<group>";
 		};
@@ -407,6 +420,8 @@
 				DEVELOPMENT_TEAM = 57FV5N9247;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Auraplus/Info.plist;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "$(PRODUCT_NAME)";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -438,6 +453,8 @@
 				DEVELOPMENT_TEAM = 57FV5N9247;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Auraplus/Info.plist;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "$(PRODUCT_NAME)";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
