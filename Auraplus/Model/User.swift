@@ -6,22 +6,26 @@
 //
 
 import Foundation
+import SwiftUICore
+import UIKit
 
 struct User: Identifiable , Codable {
     var id: String
     var username: String
     var name: String
-    
-    var initials: String {
-        let formatter = PersonNameComponentsFormatter()
-        if let components = formatter.personNameComponents(from: name){
-            formatter.style = .abbreviated
-            return formatter.string(from: components)
+    var isonline: Bool
+    var profileImageData: Data? // From backend (bytea)
+
+        // Computed property to generate a SwiftUI image
+        var profileImage: Image {
+            if let data = profileImageData, let uiImage = UIImage(data: data) {
+                return Image(uiImage: uiImage)
+            } else {
+                return Image(systemName: "person.crop.circle") // fallback
+            }
         }
-        return ""
-    }
 }
 
-extension User {
-    static var MockUser = User(id: UUID().uuidString, username: "mock", name: "Mock User")
-}
+//extension User {
+//    static var MockUser = User(id: UUID().uuidString, username: "mock", name: "Mock User")
+//}

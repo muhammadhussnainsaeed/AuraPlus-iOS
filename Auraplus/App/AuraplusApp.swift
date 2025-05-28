@@ -9,9 +9,24 @@ import SwiftUI
 
 @main
 struct AuraplusApp: App {
+    @StateObject var session = SessionManager.shared
+
+    init() {
+        session.restoreSession()
+    }
+
     var body: some Scene {
         WindowGroup {
-            SignupView()
+            NavigationStack {
+                if session.isLoggedIn {
+                    HomeView()
+                        .environmentObject(session)
+                } else {
+                    LoginView()
+                        .environmentObject(session)
+                }
+            }
         }
     }
 }
+

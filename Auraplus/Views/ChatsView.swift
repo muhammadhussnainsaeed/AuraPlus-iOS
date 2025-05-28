@@ -11,35 +11,37 @@ struct ChatsView: View {
     @State private var searchText = ""
     @State private var showChatPartnerPickerView = false
     var body: some View {
-            NavigationStack {
-                List {
-                    NavigationLink{
-                        ChatRoomView()
-                    }label:{
-                        ChatItemView(name: "Umer", lastmessage: "What's going on?", time: "01:00 PM")
-                    }
-                    
-                    NavigationLink{
-                        ChatRoomView()
-                    }label:{
-                        ChatItemView(name: "Ali", lastmessage: "hello ", time: "12:20 PM")
-                    }
-                    
-                    inboxFooterView()
-                        .listRowSeparator(.hidden)
-                    
+        VStack{
+        NavigationStack {
+            List {
+                NavigationLink{
+                    ChatRoomView()
+                }label:{
+                    ChatItemView(name: "Umer", lastmessage: "What's going on?", time: "01:00 PM")
                 }
-                .navigationTitle("Chats")
-                .searchable(text: $searchText)
-                .toolbar {
-                    trailingNavItems()
-                    lendingNavItems()
+                
+                NavigationLink{
+                    ChatRoomView()
+                }label:{
+                    ChatItemView(name: "Ali", lastmessage: "hello ", time: "12:20 PM")
                 }
-                .sheet(isPresented: $showChatPartnerPickerView){
-                    ChatPartnerPickerView()
-                }
+                
+                inboxFooterView()
+                    .listRowSeparator(.hidden)
+                
+            }
+            .navigationTitle("Chats")
+            .searchable(text: $searchText)
+            .toolbar {
+                trailingNavItems()
+                lendingNavItems()
+            }
+            .sheet(isPresented: $showChatPartnerPickerView){
+                ChatPartnerPickerView()
             }
         }
+    }
+}
     
     private func inboxFooterView() -> some View {
         HStack{
