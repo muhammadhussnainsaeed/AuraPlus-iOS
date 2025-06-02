@@ -10,6 +10,7 @@ import SwiftUI
 @main
 struct AuraplusApp: App {
     @StateObject var session = SessionManager.shared
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         session.restoreSession()
@@ -24,6 +25,32 @@ struct AuraplusApp: App {
                 } else {
                     LoginView()
                         .environmentObject(session)
+                }
+            }
+            .onChange(of: scenePhase) { newPhase in
+                guard let username = session.currentUser?.username else { return }
+
+                switch newPhase {
+                case .active:
+                    AuthService.shared.updateOnlineStatus(username: username, isOnline: true) { result in
+                        if case .failure(let error) = result {
+                            print("🟢 Online status error: \(error.localizedDescription)")
+                        } else {
+                            print("🟢 User is online")
+                        }
+                    }
+
+                case .background, .inactive:
+                    AuthService.shared.updateOnlineStatus(username: username, isOnline: false) { result in
+                        if case .failure(let error) = result {
+                            print("🔴 Offline status error: \(error.localizedDescription)")
+                        } else {
+                            print("🔴 User is offline")
+                        }
+                    }
+
+                default:
+                    break
                 }
             }
         }

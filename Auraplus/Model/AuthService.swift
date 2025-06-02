@@ -4,7 +4,7 @@
 //
 //  Created by Hussnain on 2/5/25.
 //
-
+import UIKit
 import Foundation
 
 class AuthService {
@@ -199,4 +199,336 @@ class AuthService {
             }
         }
     }
+    
+    //Change the password of the account
+    
+    func updatePassword(username: String, oldPassword: String, newPassword: String, completion: @escaping (Result<String, Error>) -> Void) {
+        guard let url = URL(string: "http://192.168.100.8:8888/update_password") else {
+            completion(.failure(URLError(.badURL)))
+            return
+        }
+
+        let body: [String: String] = [
+            "username": username,
+            "old_password": oldPassword,
+            "new_password": newPassword
+        ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        do {
+            request.httpBody = try JSONEncoder().encode(body)
+        } catch {
+            completion(.failure(error))
+            return
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse,
+                  let data = data else {
+                completion(.failure(URLError(.badServerResponse)))
+                return
+            }
+
+            if (200...299).contains(httpResponse.statusCode) {
+                completion(.success("Password updated successfully."))
+            } else {
+                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let message = json["detail"] as? String {
+                    completion(.failure(NSError(domain: "", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: message])))
+                } else {
+                    completion(.failure(URLError(.badServerResponse)))
+                }
+            }
+        }.resume()
+    }
+
+    //Forget the Password
+
+    struct SecurityAnswersRequest: Codable {
+        let username: String
+        let question1_answer: String
+        let question2_answer: String
+        let question3_answer: String
+        let question4_answer: String
+        let question5_answer: String
+    }
+
+    struct SecurityAnswersResponse: Codable {
+        let success: Bool
+        let message: String
+    }
+
+    func submitSecurityAnswers(
+        username: String,
+        q1: String,
+        q2: String,
+        q3: String,
+        q4: String,
+        q5: String,
+        onSuccess: @escaping () -> Void,
+        onFailure: @escaping (String) -> Void
+    ) {
+        guard let url = URL(string: "http://192.168.100.8:8888/check_security_answers") else {
+            onFailure("Invalid URL.")
+            return
+        }
+
+        let requestBody = SecurityAnswersRequest(
+            username: username,
+            question1_answer: q1,
+            question2_answer: q2,
+            question3_answer: q3,
+            question4_answer: q4,
+            question5_answer: q5
+        )
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        do {
+            request.httpBody = try JSONEncoder().encode(requestBody)
+        } catch {
+            onFailure("Failed to encode request.")
+            return
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                DispatchQueue.main.async {
+                    onFailure("Network error: \(error.localizedDescription)")
+                }
+                return
+            }
+
+            guard let data = data else {
+                DispatchQueue.main.async {
+                    onFailure("No response from server.")
+                }
+                return
+            }
+
+            do {
+                let decoded = try JSONDecoder().decode(SecurityAnswersResponse.self, from: data)
+                DispatchQueue.main.async {
+                    if decoded.success {
+                        onSuccess()
+                    } else {
+                        onFailure(decoded.message)
+                    }
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    onFailure("Failed to parse response.")
+                }
+            }
+        }.resume()
+    }
+
+    //Change the password in other words this will get username and password and change the password
+    
+    func updateForgottenPassword(username: String, newPassword: String, onSuccess: @escaping () -> Void, onFailure: @escaping (String) -> Void) {
+        guard let url = URL(string: "http://192.168.100.8:8888/forgetupdate_password") else {
+            onFailure("Invalid server URL.")
+            return
+        }
+
+        let payload: [String: String] = [
+            "username": username,
+            "new_password": newPassword
+        ]
+
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
+            onFailure("Failed to serialize request data.")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = jsonData
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    onFailure("Request error: \(error.localizedDescription)")
+                    return
+                }
+
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    onFailure("Invalid response from server.")
+                    return
+                }
+
+                guard (200...299).contains(httpResponse.statusCode), let data = data else {
+                    let message = String(data: data ?? Data(), encoding: .utf8) ?? "Unknown error"
+                    onFailure("Server error: \(message)")
+                    return
+                }
+
+                do {
+                    if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                       let success = json["success"] as? Bool {
+                        if success {
+                            onSuccess()
+                        } else {
+                            let message = json["message"] as? String ?? "Unknown failure"
+                            onFailure(message)
+                        }
+                    } else {
+                        onFailure("Invalid response format.")
+                    }
+                } catch {
+                    onFailure("Failed to parse response.")
+                }
+            }
+        }.resume()
+    }
+    
+    //Update the Name and Profile pic
+    
+    struct UpdateUserPhotoRequest: Codable {
+        let name: String
+        let username: String
+        let profile_image: String
+    }
+    
+    func updateUserPhoto(name: String, username: String, imageBase64: String, completion: @escaping (Result<String, Error>) -> Void) {
+        guard let url = URL(string: "http://192.168.100.8:8888/update-user-photo") else {
+            completion(.failure(NSError(domain: "Invalid URL", code: 400)))
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body = UpdateUserPhotoRequest(name: name, username: username, profile_image: imageBase64)
+        
+        do {
+            let jsonData = try JSONEncoder().encode(body)
+            request.httpBody = jsonData
+        } catch {
+            completion(.failure(error))
+            return
+        }
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                completion(.failure(NSError(domain: "Invalid response", code: 500)))
+                return
+            }
+            
+            guard (200...299).contains(httpResponse.statusCode) else {
+                let message = HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode)
+                completion(.failure(NSError(domain: message, code: httpResponse.statusCode)))
+                return
+            }
+            
+            if let data = data,
+               let result = try? JSONDecoder().decode([String: String].self, from: data),
+               let message = result["message"] {
+                completion(.success(message))
+            } else {
+                completion(.failure(NSError(domain: "Failed to parse response", code: 500)))
+            }
+        }
+        
+        task.resume()
+    }
+    
+    //fetch the porfile picture and name of the user
+    func getUserPhotoandName(username: String, completion: @escaping ((UIImage?, String?) -> Void)) {
+        guard let url = URL(string: "http://192.168.100.8:8888/get-user-photo") else {
+            completion(nil, nil)
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        // Create JSON body manually to avoid encoding issues with dictionary
+        let body: [String: String] = ["username": username]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
+
+        URLSession.shared.dataTask(with: request) { data, _, _ in
+            guard
+                let data = data,
+                let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                let base64 = json["profile_image"] as? String,
+                let imageData = Data(base64Encoded: base64),
+                let image = UIImage(data: imageData),
+                let name = json["name"] as? String
+            else {
+                completion(nil, nil)
+                return
+            }
+            completion(image, name)
+        }.resume()
+    }
+
+//update the online status of the user
+    
+    func updateOnlineStatus(username: String, isOnline: Bool, completion: @escaping (Result<String, Error>) -> Void) {
+        guard let url = URL(string: "http://192.168.100.8:8888/update-online-status") else {
+            completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let payload: [String: Any] = [
+            "username": username,
+            "is_online": isOnline
+        ]
+
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+        } catch {
+            completion(.failure(error))
+            return
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+
+            guard let data = data else {
+                completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                return
+            }
+
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let message = json["message"] as? String {
+                    completion(.success(message))
+                } else {
+                    completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response"])))
+                }
+            } catch {
+                completion(.failure(error))
+            }
+        }.resume()
+    }
+    
+    //
+    
 }

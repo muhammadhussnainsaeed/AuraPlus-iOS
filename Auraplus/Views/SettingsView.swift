@@ -17,6 +17,7 @@ struct SettingsView: View {
                 Section {
                     NavigationLink {
                         EditProfileView()
+                            .environmentObject(SessionManager.shared)
                     } label: {
                         HStack {
                             // Display user image from Data
@@ -50,7 +51,8 @@ struct SettingsView: View {
 
                 Section("Account") {
                     NavigationLink {
-                        NewPasswordView()
+                        ChangePasswordView()
+                            .environmentObject(SessionManager.shared)
                     } label: {
                         SettingItemView(title: "Account",
                                         icon: "key.fill", color: .green)

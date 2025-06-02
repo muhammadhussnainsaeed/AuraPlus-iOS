@@ -9,29 +9,11 @@ import SwiftUICore
 import UIKit
 import SwiftUI
 
-private enum Tab: String {
-    case chats, settings
-
-    var title: String {
-        rawValue.capitalized
-    }
-
-    var icon: String {
-        switch self {
-        case .chats:
-            return "message"
-        case .settings:
-            return "gear"
-        }
-    }
-}
-
 struct HomeView: View {
     init() {
         let thumbImage = UIImage(systemName: "circle.fill")!
         UISlider.appearance().setThumbImage(thumbImage, for: .normal)
     }
-    
     var body: some View {
         VStack{
             NavigationStack {
@@ -53,9 +35,29 @@ struct HomeView: View {
             }
         }
     }
+    private enum Tab: String {
+        case chats, settings
+        
+        var title: String {
+            rawValue.capitalized
+        }
+        
+        var icon: String {
+            switch self {
+            case .chats:
+                return "message"
+            case .settings:
+                return "gear"
+            }
+        }
+    }
+    
+    
+    
 }
-
-#Preview {
-    HomeView()
-}
+    
+    #Preview {
+        HomeView()
+    }
+    
 

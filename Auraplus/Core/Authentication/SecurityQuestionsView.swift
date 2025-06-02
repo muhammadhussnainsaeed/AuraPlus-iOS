@@ -56,7 +56,7 @@ struct SecurityQuestionsView: View {
                             .foregroundColor(.blue)
                             .font(.system(size: 16))
                             .frame(maxWidth: .infinity)
-                            .padding()
+                            .padding(.bottom, 15)
                     }
                 }
                 .padding(.top, 30)

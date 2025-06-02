@@ -107,6 +107,7 @@ struct SignupView: View {
                 .foregroundColor(.blue)
                 .font(.system(size: 14))
                 .padding(.top, 25)
+                .padding(.bottom, 15)
             }
         }
         // Use navigationDestination here for moveToNext instead of inner NavigationStack

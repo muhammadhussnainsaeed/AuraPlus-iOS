@@ -30,6 +30,16 @@ struct LoginView: View {
             .padding(.horizontal, 30)
             .padding(.top, 12)
             
+            NavigationLink{
+                ForgetPasswordView()
+            } label:
+            {
+                Text("Forget Password?")
+                    .foregroundColor(.blue)
+                    .font(.system(size: 14))
+                    .padding(.top,25)
+            }
+            
             if !errorMessage.isEmpty {
                 Text(errorMessage)
                     .foregroundColor(.red)
@@ -69,6 +79,7 @@ struct LoginView: View {
                 .foregroundColor(.blue)
                 .font(.system(size: 14))
                 .padding(.top, 25)
+                .padding(.bottom, 15)
             }
         }
         .onReceive(session.$isLoggedIn) { loggedIn in
