@@ -16,14 +16,13 @@ struct HomeView: View {
     }
     var body: some View {
         VStack{
-            NavigationStack {
+//            NavigationStack {
                 TabView {
-                    ChatsView()
-                        .tabItem {
-                            Image(systemName: Tab.chats.icon)
-                            Text(Tab.chats.title)
-                        }
-                    
+                        ChatsView()
+                    .tabItem {
+                        Image(systemName: Tab.chats.icon)
+                        Text(Tab.chats.title)
+                    }
                     SettingsView()
                         .tabItem {
                             Image(systemName: Tab.settings.icon)
@@ -31,10 +30,10 @@ struct HomeView: View {
                         }
                 }
                 .background(Color.white)
-                .navigationBarBackButtonHidden(true)  // Hide back button after login
             }
         }
-    }
+   // }
+
     private enum Tab: String {
         case chats, settings
         

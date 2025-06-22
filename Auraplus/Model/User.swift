@@ -10,7 +10,7 @@ import SwiftUICore
 import UIKit
 
 struct User: Identifiable , Codable {
-    var id: String
+    var id: Int
     var username: String
     var name: String
     var isonline: Bool

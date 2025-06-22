@@ -38,34 +38,54 @@ struct bubbleImageView: View {
             .padding(.bottom)
     }
     
+    @ViewBuilder
     private func messageTextView() -> some View {
-        VStack{
-            VStack(alignment: .leading,spacing: 3){
-                Image(systemName: "photo.fill")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 220, height:180)
-                    .clipShape(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    ).background{
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(Color.secondary)
+        VStack(alignment: .leading, spacing: 3) {
+            if let urlString = item.media_url, let url = URL(string: urlString) {
+                switch item.type {
+                case .photo:
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .empty:
+                            ProgressView()
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        case .failure:
+                            Image(systemName: "xmark.octagon.fill")
+                        @unknown default:
+                            EmptyView()
+                        }
                     }
-                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .stroke(Color.secondary)
-                    )
-                    .padding(7)
-            }
-            .background(item.backgroundColor)
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            timeStampTextView()
-        }
-        .padding(5)
+                    .frame(width: 220, height: 180)
+                    .clipped()
 
+                case .video:
+                    ZStack {
+                        VideoThumbnailView(videoURL: url)
+                            .frame(width: 220, height: 180)
+                            .clipped()
+                        playButton()
+                    }
+
+                default:
+                    EmptyView()
+                }
+            }
+        }
+        .background(item.backgroundColor)
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(Color.secondary)
+        )
+        .padding(7)
     }
+
     
     private func timeStampTextView() -> some View {
-        Text("12:34")
+        Text(item.timestamp)
             .font(.caption)
             .foregroundColor(.secondary)
             .padding(.leading, item.direction == .received ? 5 : 200)

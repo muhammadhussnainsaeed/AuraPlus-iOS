@@ -39,19 +39,20 @@ enum UserStatus {
 }
 
 struct ChatHeaderView: View {
+    let name: String
     let username: String
+    let profilePictureBase64: String?
     let status: UserStatus
     let typingStatus: TypingStatus
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: "person.crop.circle.fill")
-                .resizable()
+            profileImage
                 .frame(width: 45, height: 45)
-                .foregroundColor(.gray)
+                .clipShape(Circle())
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(username)
+                Text(name)
                     .font(.system(size: 17, weight: .bold))
 
                 if typingStatus == .typing {
@@ -74,10 +75,44 @@ struct ChatHeaderView: View {
         }
         .padding(.vertical, 6)
     }
-}
 
+    // MARK: - Profile Image Logic
+    private var profileImage: some View {
+        if let base64 = profilePictureBase64,
+           let data = Data(base64Encoded: base64.replacingOccurrences(of: "data:image/png;base64,", with: "")),
+           let uiImage = UIImage(data: data) {
+            return AnyView(
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            )
+        } else {
+            return AnyView(
+                Image(systemName: "person.crop.circle.fill")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .foregroundColor(.gray) // ensures it appears gray even in dark mode
+            )
+        }
+    }
+}
 
 #Preview {
-    ChatHeaderView(username: "Umer", status: .online, typingStatus: .typing)
-    ChatHeaderView(username: "umer", status: .online, typingStatus: .stoppedTyping)
+    VStack {
+        ChatHeaderView(
+            name: "Umer",
+            username: "umer",
+            profilePictureBase64: nil,
+            status: .online,
+            typingStatus: .stoppedTyping
+        )
+        ChatHeaderView(
+            name: "Ali",
+            username: "ali123",
+            profilePictureBase64: nil,
+            status: .offline,
+            typingStatus: .stoppedTyping
+        )
+    }
 }
+

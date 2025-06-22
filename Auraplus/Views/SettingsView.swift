@@ -59,7 +59,17 @@ struct SettingsView: View {
                     }
 
                     Button(action: {
+                        
+                        guard let username = session.currentUser?.username else { return }
+                        AuthService.shared.updateOnlineStatus(username: username, isOnline: false) { result in
+                            if case .failure(let error) = result {
+                                print("🔴 Offline status error: \(error.localizedDescription)")
+                            } else {
+                                print("🔴 User is offline")
+                            }
+                        }
                         session.logout()
+                        
                     }) {
                         SettingItemView(title: "Logout",
                                         icon: "exclamationmark.triangle.fill", color: .red)

@@ -7,28 +7,56 @@
 
 import SwiftUI
 
-struct UserListView: View {
+struct UserListView<Content: View>: View {
+    private let user: UserContact
+    private let trailingItems: Content
+
+    init(user: UserContact, @ViewBuilder trailingItems: () -> Content = { EmptyView() }) {
+        self.user = user
+        self.trailingItems = trailingItems()
+    }
 
     var body: some View {
-        HStack{
-            Image(systemName: "person.crop.circle.fill")
-                .foregroundColor(.gray)
-                .font(.system(size: 45))
-                
-            VStack(alignment: .leading){
-                
-                Text("John Doe")
-                    .font(.system(size: 15))
-                    .fontWeight(.semibold)
-                
-                Text("@johndoe")
-                    .font(.footnote)
-                    .foregroundColor(.gray)
+        HStack {
+            user.profileImage
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 50, height: 50)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(Color.gray.opacity(0.4), lineWidth: 1))
+                .foregroundColor(.gray) // fallback color
+
+            VStack(alignment: .leading) {
+                Text(user.name)
+                    .lineLimit(1)
+                    .bold()
+
+                Text("@\(user.username)")
+                    .font(.caption)
+//                    .foregroundColor(.gray)
             }
+
+            Spacer()
+
+            trailingItems
+                .foregroundColor(.gray)
         }
+        .padding(.vertical, 3)
     }
 }
 
 #Preview {
-    UserListView()
+    let sampleImageBase64 = UIImage(systemName: "person.crop.circle.fill")?
+        .pngData()?
+        .base64EncodedString()
+
+    let mockUser = UserContact(
+        username: "hussnain",
+        name: "Hussnain Saeed",
+        profileImageBase64: sampleImageBase64
+    )
+
+    return UserListView(user: mockUser) {
+        Image(systemName: "chevron.right")
+    }
 }

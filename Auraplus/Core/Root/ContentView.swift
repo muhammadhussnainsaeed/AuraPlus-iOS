@@ -32,7 +32,7 @@ struct ContentView: View {
                     if let profile = profile {
                         DispatchQueue.main.async {
                             session.currentUser = User(
-                                id: String(profile.id),
+                                id: profile.id,
                                 username: profile.username,
                                 name: profile.name,
                                 isonline: profile.is_online,

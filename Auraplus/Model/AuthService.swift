@@ -14,7 +14,7 @@ class AuthService {
     
     //Register the User to the data base.
     func registerUser(_ data: RegisterRequest, completion: @escaping (Bool, String) -> Void) {
-        guard let url = URL(string: "http://192.168.100.8:8888/register") else {
+        guard let url = URL(string: "http://192.168.100.31:8888/register") else {
             completion(false, "Invalid URL")
             return
         }
@@ -56,7 +56,7 @@ class AuthService {
     }
     
     func checkUsernameAvailable(username: String, completion: @escaping (Bool) -> Void) {
-        guard var components = URLComponents(string: "http://192.168.100.8:8888/check-username") else {
+        guard var components = URLComponents(string: "http://192.168.100.31:8888/check-username") else {
             completion(false)
             return
         }
@@ -120,7 +120,7 @@ class AuthService {
     }
 
     func login(username: String, password: String, completion: @escaping (String?) -> Void) {
-        guard let url = URL(string: "http://192.168.100.8:8888/login") else { return }
+        guard let url = URL(string: "http://192.168.100.31:8888/login") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -148,7 +148,7 @@ class AuthService {
             return
         }
 
-        guard let url = URL(string: "http://192.168.100.8:8888/profile") else { return }
+        guard let url = URL(string: "http://192.168.100.31:8888/profile") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -189,7 +189,7 @@ class AuthService {
 
                 // 3. Create app-specific User model (for session)
                 let user = User(
-                    id: String(profile.id),
+                    id: profile.id,
                     username: profile.username,
                     name: profile.name,
                     isonline: profile.is_online,
@@ -203,7 +203,7 @@ class AuthService {
     //Change the password of the account
     
     func updatePassword(username: String, oldPassword: String, newPassword: String, completion: @escaping (Result<String, Error>) -> Void) {
-        guard let url = URL(string: "http://192.168.100.8:8888/update_password") else {
+        guard let url = URL(string: "http://192.168.100.31:8888/update_password") else {
             completion(.failure(URLError(.badURL)))
             return
         }
@@ -276,7 +276,7 @@ class AuthService {
         onSuccess: @escaping () -> Void,
         onFailure: @escaping (String) -> Void
     ) {
-        guard let url = URL(string: "http://192.168.100.8:8888/check_security_answers") else {
+        guard let url = URL(string: "http://192.168.100.31:8888/check_security_answers") else {
             onFailure("Invalid URL.")
             return
         }
@@ -336,7 +336,7 @@ class AuthService {
     //Change the password in other words this will get username and password and change the password
     
     func updateForgottenPassword(username: String, newPassword: String, onSuccess: @escaping () -> Void, onFailure: @escaping (String) -> Void) {
-        guard let url = URL(string: "http://192.168.100.8:8888/forgetupdate_password") else {
+        guard let url = URL(string: "http://192.168.100.31:8888/forgetupdate_password") else {
             onFailure("Invalid server URL.")
             return
         }
@@ -402,7 +402,7 @@ class AuthService {
     }
     
     func updateUserPhoto(name: String, username: String, imageBase64: String, completion: @escaping (Result<String, Error>) -> Void) {
-        guard let url = URL(string: "http://192.168.100.8:8888/update-user-photo") else {
+        guard let url = URL(string: "http://192.168.100.31:8888/update-user-photo") else {
             completion(.failure(NSError(domain: "Invalid URL", code: 400)))
             return
         }
@@ -452,7 +452,7 @@ class AuthService {
     
     //fetch the porfile picture and name of the user
     func getUserPhotoandName(username: String, completion: @escaping ((UIImage?, String?) -> Void)) {
-        guard let url = URL(string: "http://192.168.100.8:8888/get-user-photo") else {
+        guard let url = URL(string: "http://192.168.100.31:8888/get-user-photo") else {
             completion(nil, nil)
             return
         }
@@ -484,7 +484,7 @@ class AuthService {
 //update the online status of the user
     
     func updateOnlineStatus(username: String, isOnline: Bool, completion: @escaping (Result<String, Error>) -> Void) {
-        guard let url = URL(string: "http://192.168.100.8:8888/update-online-status") else {
+        guard let url = URL(string: "http://192.168.100.31:8888/update-online-status") else {
             completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
             return
         }
@@ -529,6 +529,283 @@ class AuthService {
         }.resume()
     }
     
-    //
+    //Fetch all the users that are avaiable on the AuraPlus platform
+    func fetchContacts(excluding username: String, completion: @escaping ([[String: Any]]?) -> Void) {
+        guard let url = URL(string: "http://192.168.100.31:8888/get-users") else {
+            completion(nil)
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: ["username": username])
+
+        URLSession.shared.dataTask(with: request) { data, _, _ in
+            guard let data = data,
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let contacts = json["users"] as? [[String: Any]] else {
+                completion(nil)
+                return
+            }
+            completion(contacts)
+        }.resume()
+    }
+
+    // create the group
+    func createGroup(creatorUsername: String, groupName: String, members: [String], completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let url = URL(string: "http://192.168.100.31:8888/create_group") else {
+            completion(.failure(NSError(domain: "InvalidURL", code: -1, userInfo: nil)))
+            return
+        }
+
+        let requestData: [String: Any] = [
+            "creator_username": creatorUsername,
+            "group_name": groupName,
+            "members": members
+        ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: requestData, options: [])
+        } catch {
+            completion(.failure(error))
+            return
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                completion(.failure(NSError(domain: "InvalidResponse", code: -1, userInfo: nil)))
+                return
+            }
+
+            if (200...299).contains(httpResponse.statusCode) {
+                completion(.success(()))
+            } else {
+                let message = HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode)
+                completion(.failure(NSError(domain: "ServerError", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: message])))
+            }
+        }.resume()
+    }
+
+    //create the chat
+    func createOrGetChat(
+        with username: String,
+        for currentUsername: String,
+        completion: @escaping (Result<(chatID: Int, status: String), Error>) -> Void
+    ) {
+        guard let url = URL(string: "http://192.168.100.31:8888/create_or_get_chat") else {
+            completion(.failure(NSError(domain: "Invalid URL", code: 0)))
+            return
+        }
+
+        let requestBody: [String: String] = [
+            "username1": currentUsername,
+            "username2": username
+        ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        do {
+            request.httpBody = try JSONEncoder().encode(requestBody)
+        } catch {
+            completion(.failure(error))
+            return
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+
+            guard let data = data else {
+                completion(.failure(NSError(domain: "No data", code: 0)))
+                return
+            }
+
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let chatID = json["chat_id"] as? Int,
+                   let status = json["status"] as? String {
+                    completion(.success((chatID, status)))
+                } else {
+                    completion(.failure(NSError(domain: "Invalid response", code: 0)))
+                }
+            } catch {
+                completion(.failure(error))
+            }
+        }.resume()
+    }
     
+    //get all the chats
+    struct UsernameRequest: Encodable {
+        let username: String
+    }
+    func fetchChats(for username: String, completion: @escaping ([ChatPreview]?) -> Void) {
+            guard let url = URL(string: "http://192.168.100.31:8888/get_user_chats") else {
+                print("❌ Invalid URL")
+                completion(nil)
+                return
+            }
+
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+            let body = UsernameRequest(username: username)
+            
+            do {
+                request.httpBody = try JSONEncoder().encode(body)
+            } catch {
+                print("❌ Failed to encode body:", error)
+                completion(nil)
+                return
+            }
+
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print("❌ Request error:", error)
+                    completion(nil)
+                    return
+                }
+
+                guard let data = data else {
+                    print("❌ No data returned")
+                    completion(nil)
+                    return
+                }
+
+                do {
+                    let chats = try JSONDecoder().decode([ChatPreview].self, from: data)
+                    completion(chats)
+                } catch {
+                    print("❌ Failed to decode chats:", error)
+                    print("Response body:", String(data: data, encoding: .utf8) ?? "nil")
+                    completion(nil)
+                }
+            }
+            task.resume()
+        }
+    
+    //get online status
+    
+    struct OnlineStatusResponse: Decodable {
+        let username: String
+        let is_online: Bool
+    }
+
+    func fetchOnlineStatus(for username: String, completion: @escaping (Result<Bool, Error>) -> Void) {
+            guard let url = URL(string: "http://192.168.100.31:8888/get-online-status") else {
+                print("❌ Invalid URL")
+                completion(.failure(NSError(domain: "InvalidURL", code: 1)))
+                return
+            }
+
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+            let body: [String: String] = ["username": username]
+            do {
+                request.httpBody = try JSONEncoder().encode(body)
+            } catch {
+                completion(.failure(error))
+                return
+            }
+
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print("❌ Network error:", error)
+                    completion(.failure(error))
+                    return
+                }
+
+                guard let data = data else {
+                    print("❌ No data received")
+                    completion(.failure(NSError(domain: "NoData", code: 2)))
+                    return
+                }
+
+                do {
+                    let decoded = try JSONDecoder().decode(OnlineStatusResponse.self, from: data)
+                    completion(.success(decoded.is_online))
+                } catch {
+                    print("❌ Decoding error:", error)
+                    completion(.failure(error))
+                }
+            }.resume()
+        }
+
+    //Get messages of specific chat
+    func fetchMessages(chatId: Int, completion: @escaping ([Message]) -> Void) {
+        guard let url = URL(string: "http://192.168.100.31:8888/messages/\(chatId)") else {
+            print("❌ Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Error fetching messages:", error.localizedDescription)
+                return
+            }
+
+            guard let data = data else {
+                print("❌ No data received")
+                return
+            }
+
+            do {
+                let messages = try decoder.decode([Message].self, from: data)
+                DispatchQueue.main.async {
+                    completion(messages)
+                }
+            } catch {
+                print("❌ Failed to decode messages:", error.localizedDescription)
+            }
+        }.resume()
+    }
+
+    
+    //sent messages
+    func sendMessageREST(_ message: MessageCreate, completion: @escaping (Message?) -> Void) {
+        guard let url = URL(string: "http://192.168.100.31:8888/messages") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONEncoder().encode(message)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data, error == nil else {
+                print("❌ Error sending message:", error?.localizedDescription ?? "")
+                return
+            }
+            if let result = try? JSONDecoder().decode(Message.self, from: data) {
+                DispatchQueue.main.async {
+                    completion(result)
+                }
+            } else {
+                print("❌ Failed to decode POST response")
+            }
+        }.resume()
+    }
+
+
 }

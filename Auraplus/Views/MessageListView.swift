@@ -8,19 +8,25 @@
 import SwiftUI
 
 struct MessageListView: UIViewControllerRepresentable {
-    
-    typealias UIViewControllerType = MessageListController
-    
+    let chatId: Int
+    let currentUserId: Int
+    let webSocketManager: WebSocketManager
+    let senderUsername: String
+    let username: String?
+
     func makeUIViewController(context: Context) -> MessageListController {
-        let messageListController = MessageListController()
-        return messageListController
+        let vc = MessageListController()
+        vc.chatId = chatId
+        vc.currentUserId = currentUserId
+        vc.webSocketManager = webSocketManager
+        vc.username = username
+        return vc
     }
-    
-    func updateUIViewController(_ uiViewController: MessageListController, context: Context) {
-        
-    }
+
+    func updateUIViewController(_ uiViewController: MessageListController, context: Context) {}
 }
 
-#Preview {
-    MessageListView()
-}
+//#Preview {
+//    let dummySocket = WebSocketManager(currentUserId: 1, currentChatId: 1)
+//    MessageListView(chatId: 1, currentUserId: 1, webSocketManager: dummySocket,senderUsername: "", username: "test")
+//}

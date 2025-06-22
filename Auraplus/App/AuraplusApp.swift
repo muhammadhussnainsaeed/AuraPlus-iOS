@@ -18,7 +18,7 @@ struct AuraplusApp: App {
 
     var body: some Scene {
         WindowGroup {
-            NavigationStack {
+            Group {
                 if session.isLoggedIn {
                     HomeView()
                         .environmentObject(session)
@@ -27,33 +27,32 @@ struct AuraplusApp: App {
                         .environmentObject(session)
                 }
             }
-            .onChange(of: scenePhase) { newPhase in
-                guard let username = session.currentUser?.username else { return }
+        }
+        .onChange(of: scenePhase) { newPhase in
+            guard let username = session.currentUser?.username else { return }
 
-                switch newPhase {
-                case .active:
-                    AuthService.shared.updateOnlineStatus(username: username, isOnline: true) { result in
-                        if case .failure(let error) = result {
-                            print("🟢 Online status error: \(error.localizedDescription)")
-                        } else {
-                            print("🟢 User is online")
-                        }
+            switch newPhase {
+            case .active:
+                AuthService.shared.updateOnlineStatus(username: username, isOnline: true) { result in
+                    if case .failure(let error) = result {
+                        print("🟢 Online status error: \(error.localizedDescription)")
+                    } else {
+                        print("🟢 User is online")
                     }
-
-                case .background, .inactive:
-                    AuthService.shared.updateOnlineStatus(username: username, isOnline: false) { result in
-                        if case .failure(let error) = result {
-                            print("🔴 Offline status error: \(error.localizedDescription)")
-                        } else {
-                            print("🔴 User is offline")
-                        }
-                    }
-
-                default:
-                    break
                 }
+
+            case .background, .inactive:
+                AuthService.shared.updateOnlineStatus(username: username, isOnline: false) { result in
+                    if case .failure(let error) = result {
+                        print("🔴 Offline status error: \(error.localizedDescription)")
+                    } else {
+                        print("🔴 User is offline")
+                    }
+                }
+
+            default:
+                break
             }
         }
     }
 }
-
