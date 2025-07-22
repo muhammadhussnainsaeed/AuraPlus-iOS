@@ -3,7 +3,8 @@ import SwiftUI
 
 struct MessageItem: Identifiable {
     let id = UUID().uuidString
-    let text: String
+    let messageid: Int
+    let text: String?
     let type: MessageType
     let media_url: String?
     let direction: MessageDirection
@@ -26,6 +27,7 @@ struct MessageItem: Identifiable {
         self.direction = currentUsername == message.username ? .sent : .received
         self.timestamp = Self.formatDateString(message.time_stamp)
         self.media_url = message.media_url
+        self.messageid = message.id ?? 0
     }
 
     // MARK: - Manual initializer for previews/testing
@@ -36,6 +38,7 @@ struct MessageItem: Identifiable {
         self.timestamp = timestamp
         self.username = "hi"
         self.media_url = nil
+        self.messageid = 0
     }
 
     // MARK: - UI Helpers

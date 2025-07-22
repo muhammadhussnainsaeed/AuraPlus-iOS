@@ -14,7 +14,7 @@ struct Message: Codable, Identifiable {
     let chat_id: Int
     let sender_id: Int
     let username: String
-    let content: String
+    let content: String?
     let media_url: String?
     let message_type: String
     let time_stamp: String  // Will now correctly map from "created_at"

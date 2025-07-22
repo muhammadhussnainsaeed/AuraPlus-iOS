@@ -13,6 +13,7 @@ struct MessageListView: UIViewControllerRepresentable {
     let webSocketManager: WebSocketManager
     let senderUsername: String
     let username: String?
+    let userid: Int
 
     func makeUIViewController(context: Context) -> MessageListController {
         let vc = MessageListController()
@@ -20,6 +21,7 @@ struct MessageListView: UIViewControllerRepresentable {
         vc.currentUserId = currentUserId
         vc.webSocketManager = webSocketManager
         vc.username = username
+        vc.userid = userid
         return vc
     }
 

@@ -8,7 +8,7 @@ class NetworkService {
 
     func uploadMedia(username: String, fileURL: URL, completion: @escaping (Result<String, Error>) -> Void) {
         let boundary = UUID().uuidString
-        var request = URLRequest(url: URL(string: "http://192.168.100.31:8888/upload-media/")!)
+        var request = URLRequest(url: URL(string: "http://192.168.100.8:8888/upload-media/")!)
         request.httpMethod = "POST"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
 
@@ -50,7 +50,7 @@ class NetworkService {
     func downloadMedia(linkPath: String, completion: @escaping (Result<URL, Error>) -> Void) {
         // Directly use the IP and port in the URL string
         guard let encodedLink = linkPath.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: "http://192.168.100.31:8888/get-media/?link=\(encodedLink)") else {
+              let url = URL(string: "http://192.168.100.8:8888/get-media/?link=\(encodedLink)") else {
             completion(.failure(NSError(domain: "Invalid URL", code: 0)))
             return
         }

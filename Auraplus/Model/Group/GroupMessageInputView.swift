@@ -2,7 +2,7 @@ import SwiftUI
 import AVFoundation
 import UniformTypeIdentifiers
 
-struct MessageInputView: View {
+struct GroupMessageInputView: View {
     @State private var text = ""
     @State private var audioRecorder: AVAudioRecorder?
     @State private var recordingURL: URL?
@@ -10,15 +10,14 @@ struct MessageInputView: View {
     @State private var showPicker = false
     @State private var selectedMediaURL: URL?
     @State private var pickerMediaType: UTType? = nil
-    @FocusState private var isFocused: Bool
 
-    let chatId: Int
+    let groupId: Int
     let senderId: Int
     let senderUsername: String?
-    @ObservedObject var webSocketManager: WebSocketManager
+    @ObservedObject var webSocketManagerG: WebSocketManagerG
 
     var body: some View {
-        HStack(alignment: .center, spacing: 8) {
+        HStack(spacing: 8) {
             imagePickerButton()
             messsageTextField()
             audioRecorderButton()
@@ -32,24 +31,12 @@ struct MessageInputView: View {
 
     private func messsageTextField() -> some View {
         TextField("Type a message...", text: $text, axis: .vertical)
-            .focused($isFocused)
             .padding(8)
             .background(
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
                     .fill(.thinMaterial)
             )
-            .onChange(of: isFocused) { focused in
-                AuthService.shared.updateTypingStatus(chatID: chatId, userID: senderId, isTyping: focused) { result in
-                    switch result {
-                    case .success:
-                        print("✅ Typing status updated to \(focused)")
-                    case .failure(let error):
-                        print("❌ Typing status error: \(error.localizedDescription)")
-                    }
-                }
-            }
     }
-
 
     private func imagePickerButton() -> some View {
         Button {
@@ -86,14 +73,14 @@ struct MessageInputView: View {
             }
         }
     }
-    
+
     private func upload(mediaURL: URL, type: String) {
         NetworkService.shared.uploadMedia(username: senderUsername ?? "Anonymous", fileURL: mediaURL) { result in
             switch result {
             case .success(let mediaPath):
                 DispatchQueue.main.async {
-                    webSocketManager.sendMessage(
-                        chatId: chatId,
+                    webSocketManagerG.sendMessage(
+                        groupId: groupId,
                         senderId: senderId,
                         content: "",
                         mediaURL: mediaPath,
@@ -106,59 +93,10 @@ struct MessageInputView: View {
         }
     }
 
-    
-    private func convertImageToJPEG(originalURL: URL, completion: @escaping (URL?) -> Void) {
-        guard let imageData = try? Data(contentsOf: originalURL),
-              let image = UIImage(data: imageData) else {
-            completion(nil)
-            return
-        }
-
-        guard let jpegData = image.jpegData(compressionQuality: 0.8) else {
-            completion(nil)
-            return
-        }
-
-        let outputURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".jpg")
-        do {
-            try jpegData.write(to: outputURL)
-            completion(outputURL)
-        } catch {
-            print("❌ Failed to save JPG: \(error)")
-            completion(nil)
-        }
-    }
-
-    
-    private func convertVideoToMP4(originalURL: URL, completion: @escaping (URL?) -> Void) {
-        let asset = AVAsset(url: originalURL)
-        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetMediumQuality) else {
-            completion(nil)
-            return
-        }
-
-        let outputURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".mp4")
-        exportSession.outputURL = outputURL
-        exportSession.outputFileType = .mp4
-        exportSession.shouldOptimizeForNetworkUse = true
-
-        exportSession.exportAsynchronously {
-            DispatchQueue.main.async {
-                if exportSession.status == .completed {
-                    completion(outputURL)
-                } else {
-                    print("❌ Export failed: \(exportSession.error?.localizedDescription ?? "unknown error")")
-                    completion(nil)
-                }
-            }
-        }
-    }
-
-
     private func sendButton() -> some View {
         Button {
             guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-            webSocketManager.sendMessage(chatId: chatId, senderId: senderId, content: text)
+            webSocketManagerG.sendMessage(groupId: groupId, senderId: senderId, content: text)
             text = ""
         } label: {
             Image(systemName: "arrow.up.circle.fill")
@@ -170,14 +108,8 @@ struct MessageInputView: View {
 
     private func audioRecorderButton() -> some View {
         let longPress = LongPressGesture(minimumDuration: 0.2)
-            .onChanged { _ in
-                if !isRecording {
-                    startRecording()
-                }
-            }
-            .onEnded { _ in
-                stopRecordingAndSend()
-            }
+            .onChanged { _ in if !isRecording { startRecording() } }
+            .onEnded { _ in stopRecordingAndSend() }
 
         return Button(action: {}) {
             Image(systemName: isRecording ? "mic.circle.fill" : "mic.circle.fill")
@@ -231,7 +163,6 @@ struct MessageInputView: View {
 
         guard let audioURL = recordingURL else { return }
 
-        // Delay to allow file writing
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             guard let duration = getAudioDuration(from: audioURL), duration > 0.5 else {
                 print("❌ Invalid or too short recording")
@@ -240,7 +171,6 @@ struct MessageInputView: View {
 
             do {
                 let fileSize = try FileManager.default.attributesOfItem(atPath: audioURL.path)[.size] as? Int64 ?? 0
-                print("📦 Size: \(fileSize) bytes")
                 guard fileSize > 1000 else {
                     print("❌ File too small")
                     return
@@ -250,13 +180,12 @@ struct MessageInputView: View {
                 return
             }
 
-            NetworkService.shared.uploadMedia(username: senderUsername ?? "hussna000", fileURL: audioURL) { result in
+            NetworkService.shared.uploadMedia(username: senderUsername ?? "Anonymous", fileURL: audioURL) { result in
                 switch result {
                 case .success(let mediaPath):
-                    print("✅ Uploaded to server at: \(mediaPath)")
                     DispatchQueue.main.async {
-                        webSocketManager.sendMessage(
-                            chatId: chatId,
+                        webSocketManagerG.sendMessage(
+                            groupId: groupId,
                             senderId: senderId,
                             content: "",
                             mediaURL: mediaPath,
@@ -282,6 +211,48 @@ struct MessageInputView: View {
             try session.setActive(true)
         } catch {
             print("❌ Audio session error: \(error.localizedDescription)")
+        }
+    }
+
+    private func convertImageToJPEG(originalURL: URL, completion: @escaping (URL?) -> Void) {
+        guard let imageData = try? Data(contentsOf: originalURL),
+              let image = UIImage(data: imageData),
+              let jpegData = image.jpegData(compressionQuality: 0.8) else {
+            completion(nil)
+            return
+        }
+
+        let outputURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".jpg")
+        do {
+            try jpegData.write(to: outputURL)
+            completion(outputURL)
+        } catch {
+            print("❌ Failed to save JPG: \(error)")
+            completion(nil)
+        }
+    }
+
+    private func convertVideoToMP4(originalURL: URL, completion: @escaping (URL?) -> Void) {
+        let asset = AVAsset(url: originalURL)
+        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetMediumQuality) else {
+            completion(nil)
+            return
+        }
+
+        let outputURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".mp4")
+        exportSession.outputURL = outputURL
+        exportSession.outputFileType = .mp4
+        exportSession.shouldOptimizeForNetworkUse = true
+
+        exportSession.exportAsynchronously {
+            DispatchQueue.main.async {
+                if exportSession.status == .completed {
+                    completion(outputURL)
+                } else {
+                    print("❌ Export failed: \(exportSession.error?.localizedDescription ?? "unknown error")")
+                    completion(nil)
+                }
+            }
         }
     }
 }

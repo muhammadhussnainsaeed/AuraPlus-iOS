@@ -10,7 +10,7 @@ import Foundation
 class SessionManager: ObservableObject {
     static let shared = SessionManager()
 
-    @Published var currentUser: User? = nil
+    @Published var currentUser: User?
     @Published var isLoggedIn: Bool = false
 
     private let userDefaultsKey = "currentUserData"
@@ -52,7 +52,7 @@ class SessionManager: ObservableObject {
         }
     }
 
-    private func saveUserToDefaults(user: User) {
+    func saveUserToDefaults(user: User) {
         do {
             let encodedData = try JSONEncoder().encode(user)
             UserDefaults.standard.set(encodedData, forKey: userDefaultsKey)

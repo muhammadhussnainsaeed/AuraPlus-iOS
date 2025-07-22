@@ -1,19 +1,28 @@
 //
-//  BubbleTextView.swift
+//  BubbleTextViewG.swift
 //  Auraplus
 //
-//  Created by Hussnain on 22/3/25.
+//  Created by Hussnain on 23/6/25.
 //
 
 import SwiftUI
 
-struct BubbleTextView: View {
-    let item: MessageItem
+struct BubbleTextViewG: View {
+    let item: GroupMessageItem
     var onDelete: (() -> Void)? = nil
 
     var body: some View {
         VStack(alignment: item.horizantalAlignment, spacing: 3) {
-            Text(item.text ?? "default value")
+            if item.direction == .received {
+                // 🟢 Show sender name only for received messages
+                Text(item.username)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.blue)
+                    .padding(.leading, 4)
+            }
+
+            Text(item.text)
                 .padding(9)
                 .foregroundColor(item.foregroundColor)
                 .background(item.backgroundColor)
@@ -35,22 +44,4 @@ struct BubbleTextView: View {
 }
 
 
-#Preview {
-    VStack(spacing: 20) {
-        BubbleTextView(item: MessageItem(
-            text: "Hello! How are you?",
-            type: .text,
-            direction: .sent,
-            timestamp: "10:45 AM"
-        ))
-
-        BubbleTextView(item: MessageItem(
-            text: "I'm good, thank you!",
-            type: .text,
-            direction: .received,
-            timestamp: "10:46 AM"
-        ))
-    }
-    .padding()
-}
 

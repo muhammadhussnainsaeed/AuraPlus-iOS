@@ -77,7 +77,6 @@ struct EditProfileView: View {
                         if let image = image {
                             let imageData = image.jpegData(compressionQuality: 1.0)
                             session.currentUser?.profileImageData = imageData
-                            selectedImage = image
                             print("✅ Profile photo updated from server")
                         } else {
                             print("❌ Failed to fetch user photo")
@@ -114,8 +113,25 @@ struct EditProfileView: View {
 
         AuthService.shared.updateUserPhoto(name: name, username: session.currentUser?.username ?? "", imageBase64: base64) { result in
             switch result {
-            case .success(let msg): print("✅", msg)
-            case .failure(let error): print("❌", error.localizedDescription)
+            case .success(let msg):
+                print("✅", msg)
+
+                // Update session.currentUser
+                if var currentUser = session.currentUser {
+                    if let selectedImage = selectedImage,
+                       let imageData = selectedImage.jpegData(compressionQuality: 1.0) {
+                        currentUser.profileImageData = imageData
+                    }
+                    currentUser.name = name
+                    session.currentUser = currentUser // <-- important for SwiftUI updates
+
+                    // Save to UserDefaults
+                    SessionManager.shared.saveUserToDefaults(user: currentUser)
+                    print("💾 Updated user saved to UserDefaults")
+                }
+
+            case .failure(let error):
+                print("❌", error.localizedDescription)
             }
         }
     }

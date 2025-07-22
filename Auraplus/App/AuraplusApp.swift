@@ -11,6 +11,7 @@ import SwiftUI
 struct AuraplusApp: App {
     @StateObject var session = SessionManager.shared
     @Environment(\.scenePhase) private var scenePhase
+    @State private var showLaunchScreen = true
 
     init() {
         session.restoreSession()
@@ -19,12 +20,23 @@ struct AuraplusApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if session.isLoggedIn {
-                    HomeView()
-                        .environmentObject(session)
+                if showLaunchScreen {
+                    LaunchScreen()
+                        .onAppear {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { // show for 2 seconds
+                                withAnimation {
+                                    showLaunchScreen = false
+                                }
+                            }
+                        }
                 } else {
-                    LoginView()
-                        .environmentObject(session)
+                    if session.isLoggedIn {
+                        HomeView()
+                            .environmentObject(session)
+                    } else {
+                        LoginView()
+                            .environmentObject(session)
+                    }
                 }
             }
         }

@@ -1,31 +1,39 @@
+//
+//  WebSocketManagerG.swift
+//  Auraplus
+//
+//  Created by Hussnain on 23/6/25.
+//
+
 import Foundation
 
-// MARK: - Message Model (outgoing)
-struct WebSocketMessage: Codable {
+// MARK: - Message Model (Outgoing)
+struct WebSocketMessageG: Codable {
     let chat_id: Int
     let sender_id: Int
     let content: String?
     let media_url: String?
-    let message_type: String
+    let message_type: String  // "text", "image", "audio", etc.
 }
 
-// MARK: - WebSocket Manager
-class WebSocketManager: ObservableObject {
+import Foundation
+
+class WebSocketManagerG: ObservableObject {
     private var webSocketTask: URLSessionWebSocketTask?
-    private let url = URL(string: "ws://192.168.100.8:8888/ws/chat")!
+    private let url = URL(string: "ws://192.168.100.8:8888/ws/group_chat")!
     private let session = URLSession(configuration: .default)
 
-    @Published var newIncomingMessage: Message?
-    
-    private var currentChatId: Int?
-    
-    init(chatId: Int? = nil) {
-            self.currentChatId = chatId
-        }
+    @Published var newIncomingMessage: GroupMessage?
 
-        func setChatId(_ id: Int) {
-            self.currentChatId = id
-        }
+    private var currentGroupId: Int?
+
+    init(groupId: Int? = nil) {
+        self.currentGroupId = groupId
+    }
+
+    func setGroupId(_ id: Int) {
+        self.currentGroupId = id
+    }
 
     func connect() {
         let request = URLRequest(url: url)
@@ -38,10 +46,14 @@ class WebSocketManager: ObservableObject {
         webSocketTask?.cancel(with: .goingAway, reason: nil)
     }
 
-    func sendMessage(chatId: Int, senderId: Int, content: String, mediaURL: String? = nil, messageType: String = "text") {
-        let encryptedContent: String = content.isEmpty ? "" : (AESHelper.shared.encrypt(message: content) ?? "")
-        let message = WebSocketMessage(
-            chat_id: chatId,
+    func sendMessage(groupId: Int, senderId: Int, content: String?, mediaURL: String? = nil, messageType: String = "text") {
+        let encryptedContent: String? = {
+            guard let text = content, !text.isEmpty else { return content }
+            return AESHelper.shared.encrypt(message: text)
+        }()
+
+        let message = WebSocketMessageG(
+            chat_id: groupId,
             sender_id: senderId,
             content: encryptedContent,
             media_url: mediaURL,
@@ -53,13 +65,13 @@ class WebSocketManager: ObservableObject {
             let jsonString = String(data: jsonData, encoding: .utf8)!
             webSocketTask?.send(.string(jsonString)) { error in
                 if let error = error {
-                    print("❌ Send failed:", error.localizedDescription)
+                    print("❌ Group message send failed:", error.localizedDescription)
                 } else {
-                    print("✅ Message sent")
+                    print("✅ Group message sent")
                 }
             }
         } catch {
-            print("❌ Encoding error:", error)
+            print("❌ Group message encoding error:", error)
         }
     }
 
@@ -70,7 +82,6 @@ class WebSocketManager: ObservableObject {
             switch result {
             case .failure(let error):
                 print("❌ Receive error:", error.localizedDescription)
-
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     self.receiveMessages()
                 }
@@ -78,22 +89,23 @@ class WebSocketManager: ObservableObject {
             case .success(let message):
                 switch message {
                 case .string(let text):
-                    print("📩 Encrypted JSON Received:", text)
+                    print("📩 Group Encrypted JSON Received:", text)
 
                     // Step 1: Decode JSON with encrypted content
-                    if let decoded = try? JSONDecoder().decode(Message.self, from: Data(text.utf8)) {
+                    if let decoded = try? JSONDecoder().decode(GroupMessage.self, from: Data(text.utf8)) {
 
-                        // Step 2: Decrypt the content
+                        // Step 2: Decrypt the content (if present)
                         var decryptedContent: String? = nil
                         if let encrypted = decoded.content, !encrypted.isEmpty {
                             decryptedContent = AESHelper.shared.decrypt(base64CipherText: encrypted)
                         } else {
                             decryptedContent = decoded.content
                         }
-                        // Step 3: Create a new decrypted message instance
-                        let finalMessage = Message(
+
+                        // Step 3: Recreate a new instance with decrypted content
+                        let finalMessage = GroupMessage(
                             id: decoded.id,
-                            chat_id: decoded.chat_id,
+                            group_id: decoded.group_id,
                             sender_id: decoded.sender_id,
                             username: decoded.username,
                             content: decryptedContent,
@@ -102,24 +114,24 @@ class WebSocketManager: ObservableObject {
                             time_stamp: decoded.time_stamp
                         )
 
-                        // Step 4: Filter by chat ID and update
-                        if finalMessage.chat_id == self.currentChatId {
+                        // Step 4: Check group match and update UI
+                        if finalMessage.group_id == self.currentGroupId {
                             DispatchQueue.main.async {
                                 self.newIncomingMessage = finalMessage
                             }
                         } else {
-                            print("⚠️ Chat ID doesn't match")
+                            print("⚠️ Group ID doesn't match")
                         }
 
                     } else {
-                        print("⚠️ Message JSON decoding failed")
+                        print("⚠️ Group JSON decoding failed")
                     }
 
                 case .data(let data):
-                    print("📦 Binary data received:", data)
+                    print("📦 Binary data received in group:", data)
 
                 @unknown default:
-                    print("⚠️ Unknown message type")
+                    print("⚠️ Unknown group message type")
                 }
 
                 self.receiveMessages() // Keep listening

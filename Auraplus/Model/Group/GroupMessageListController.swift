@@ -2,17 +2,19 @@ import UIKit
 import SwiftUI
 import Combine
 
-final class MessageListController: UIViewController {
+final class GroupMessageListController: UIViewController {
 
-    var chatId: Int = 0
-    var currentUserId: Int = 0
-    var username: String?
-    var webSocketManager: WebSocketManager?
     var userid: Int = 0
+    var groupId: Int = 0
+    var currentUserId: Int = 0
+    var username: String? // Current user's username
+    var senderUsername: String? // The actual sender in the session
+    var webSocketManagerG: WebSocketManagerG?
 
-    private var messages: [MessageItem] = []
+    private var messages: [GroupMessageItem] = []
     private var cancellables = Set<AnyCancellable>()
-    private let cellIdentifier = "MessageListControllerCells"
+
+    private let cellIdentifier = "GroupMessageListControllerCell"
 
     private lazy var tableView: UITableView = {
         let tableView = UITableView()
@@ -44,22 +46,24 @@ final class MessageListController: UIViewController {
     }
 
     private func loadInitialMessages() {
-        AuthService.shared.fetchMessages(chatId: chatId) { [weak self] backendMessages in
+        AuthService.shared.fetchGroupMessages(groupId: groupId) { [weak self] backendMessages in
             guard let self = self else { return }
 
             self.messages = backendMessages.map { backendMessage in
-                let decryptedContent: String = {
+                // 🔐 Decrypt the content (if any)
+                let decryptedContent: String? = {
                     if let encrypted = backendMessage.content,
                        let decrypted = AESHelper.shared.decrypt(base64CipherText: encrypted) {
                         return decrypted
                     } else {
-                        return ""
+                        return nil // or fallback like "" if needed
                     }
                 }()
 
-                let decryptedMessage = Message(
+                // 🔁 Recreate GroupMessage with decrypted content
+                let decryptedMessage = GroupMessage(
                     id: backendMessage.id,
-                    chat_id: backendMessage.chat_id,
+                    group_id: backendMessage.group_id,
                     sender_id: backendMessage.sender_id,
                     username: backendMessage.username,
                     content: decryptedContent,
@@ -68,9 +72,13 @@ final class MessageListController: UIViewController {
                     time_stamp: backendMessage.time_stamp
                 )
 
-                return MessageItem(from: decryptedMessage, currentUsername: self.username ?? "")
+                return GroupMessageItem(
+                    from: decryptedMessage,
+                    currentUsername: self.username ?? ""
+                )
             }
 
+            // ✅ Reload UI
             DispatchQueue.main.async {
                 self.tableView.reloadData()
                 self.scrollToBottom()
@@ -78,14 +86,19 @@ final class MessageListController: UIViewController {
         }
     }
 
+
     private func observeWebSocketUpdates() {
-        webSocketManager?.$newIncomingMessage
+        webSocketManagerG?.$newIncomingMessage
             .compactMap { $0 }
             .receive(on: DispatchQueue.main)
             .sink { [weak self] newMessage in
                 guard let self = self else { return }
 
-                let messageItem = MessageItem(from: newMessage, currentUsername: self.username ?? "")
+                let messageItem = GroupMessageItem(
+                    from: newMessage,
+                    currentUsername: self.username ?? ""
+                )
+
                 self.messages.append(messageItem)
                 self.tableView.reloadData()
                 self.scrollToBottom()
@@ -100,31 +113,33 @@ final class MessageListController: UIViewController {
     }
 }
 
-extension MessageListController: UITableViewDelegate, UITableViewDataSource {
+// MARK: - UITableView Delegate & DataSource
+
+extension GroupMessageListController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         messages.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let message = messages[indexPath.row]
+        let groupMessage = messages[indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath)
         cell.backgroundColor = .clear
         cell.selectionStyle = .none
 
         cell.contentConfiguration = UIHostingConfiguration {
-            switch message.type {
+            switch groupMessage.type {
             case .text:
-                BubbleTextView(item: message) {
+                BubbleTextViewG(item: groupMessage) {
                     self.confirmDelete(at: indexPath.row)
                 }
             case .photo, .video:
-                bubbleImageView(item: message){
+                bubbleImageViewG(item: groupMessage){
                     self.confirmDelete(at: indexPath.row)
-                } // TODO: Add onDelete if needed
+                }
             case .audio:
-                BubbleAudioView(item: message){
+                BubbleAudioViewG(item: groupMessage){
                     self.confirmDelete(at: indexPath.row)
-                } // TODO: Add onDelete if needed
+                }
             }
         }
         return cell
@@ -155,31 +170,24 @@ extension MessageListController: UITableViewDelegate, UITableViewDataSource {
     }
 
     private func deleteMessage(at index: Int) {
+        guard index >= 0, index < messages.count else {
+            showError(message: "Invalid index.")
+            return
+        }
 
-//        guard let session = session, let userId = session.currentUser?.id else {
-//                showError(message: "User session is not available.")
-//                return
-//            }
-
-            // ✅ 2. Safely check index
-            guard index >= 0, index < messages.count else {
-                showError(message: "Message index is invalid.")
-                return
-            }
-        
         let message = messages[index]
-        print("🧾 Deleting message with DB ID:", message.messageid)
-        
-        AuthService.shared.deleteMessage(messageID: message.messageid, userID: userid) { result in
+        print("🧾 Deleting GroupMessage ID:", message.id)
+
+        AuthService.shared.deleteGroupMessage(messageID: message.messageid, senderID: userid) { result in
             DispatchQueue.main.async {
                 switch result {
-                case .success(let deletedMessage):
-                    print("✅ Deleted message from server: \(deletedMessage)")
+                case .success(let successMessage):
+                    print("✅ Deleted group message: \(successMessage)")
                     self.messages.remove(at: index)
                     self.tableView.reloadData()
                 case .failure(let error):
                     self.showError(message: error.localizedDescription)
-                    print("❌ Delete error:", error)
+                    print("❌ Delete failed:", error)
                 }
             }
         }
@@ -187,8 +195,8 @@ extension MessageListController: UITableViewDelegate, UITableViewDataSource {
 
     private func showError(message: String) {
         let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
-        print("------",message,"------")
         alert.addAction(UIAlertAction(title: "OK", style: .default))
+        print("❌ Error: \(message)")
         self.present(alert, animated: true)
     }
 }

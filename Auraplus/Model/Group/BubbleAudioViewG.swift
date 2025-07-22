@@ -2,10 +2,9 @@ import SwiftUI
 import AVKit
 import Combine
 
-struct BubbleAudioView: View {
-    let item: MessageItem
-
-    var onDelete: (() -> Void)? = nil
+struct BubbleAudioViewG: View {
+    let item: GroupMessageItem
+    var onDelete: (() -> Void)? = nil  // ✅ Delete handler
 
     @State private var avPlayer: AVPlayer?
     @State private var isPlaying = false
@@ -17,10 +16,21 @@ struct BubbleAudioView: View {
     @StateObject private var playerObserver = PlayerObserver()
 
     var body: some View {
-        VStack(alignment: item.horizantalAlignment, spacing: 4) {
+        VStack(alignment: item.horizantalAlignment, spacing: 3) {
+            // 👤 Show sender name if received
+            if item.direction == .received {
+                Text(item.username)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.blue)
+                    .frame(maxWidth: .infinity, alignment: item.alignment)
+                    .padding(.horizontal, 10)
+            }
+
+            // 🔊 Audio bubble with long-press gesture
             HStack {
                 playButton()
-                
+
                 if isDownloading {
                     ProgressView()
                         .scaleEffect(0.8)
@@ -42,23 +52,30 @@ struct BubbleAudioView: View {
             .padding(8)
             .background(item.backgroundColor)
             .clipShape(RoundedRectangle(cornerRadius: 10))
-            
-            timeStampView()
+            .contentShape(Rectangle()) // 👈 makes whole bubble tappable
+            .onLongPressGesture {
+                onDelete?()              // ✅ Trigger delete
+            }
+            .onAppear(perform: setupAudio)
 
+            // 🔴 Show error if any
             if let error = downloadError {
                 Text(error)
                     .font(.caption2)
                     .foregroundColor(.red)
             }
+
+            // 🕓 Timestamp
+            Text(item.timestamp)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+                .padding(.leading, item.direction == .received ? 5 : 100)
+                .padding(.trailing, item.direction == .received ? 100 : 5)
         }
         .frame(maxWidth: .infinity, alignment: item.alignment)
-        .padding(.horizontal, 10)
-        .contentShape(Rectangle()) // makes whole bubble tappable
-        .onLongPressGesture {
-            onDelete?()
-        }
+        .padding(.leading, item.direction == .received ? 5 : 100)
+        .padding(.trailing, item.direction == .received ? 100 : 5)
     }
-
 
     @MainActor
     private func setupAudio() {
@@ -91,7 +108,7 @@ struct BubbleAudioView: View {
         NetworkService.shared.downloadMedia(linkPath: mediaPath) { result in
             DispatchQueue.main.async {
                 self.isDownloading = false
-                
+
                 switch result {
                 case .success(let localURL):
                     self.createPlayer(with: localURL)
@@ -201,12 +218,6 @@ struct BubbleAudioView: View {
         timer = nil
     }
 
-    private func timeStampView() -> some View {
-        Text(item.timestamp) // Customize as needed
-            .font(.caption2)
-            .foregroundColor(.secondary)
-    }
-
     private func playButton() -> some View {
         Button(action: togglePlayback) {
             Image(systemName: isPlaying ? "pause.fill" : "play.fill")
@@ -221,8 +232,4 @@ struct BubbleAudioView: View {
         let seconds = Int(value) % 60
         return String(format: "%02d:%02d", minutes, seconds)
     }
-}
-
-class PlayerObserver: ObservableObject {
-    var cancellables = Set<AnyCancellable>()
 }

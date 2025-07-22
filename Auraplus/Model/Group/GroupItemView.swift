@@ -1,36 +1,40 @@
 import SwiftUI
 
-struct ChatItemView: View {
-    let chat: ChatPreview
+struct GroupItemView: View {
+    let group: GroupPreview
     private var decryptedMessage: String {
-        if let encrypted = chat.lastMessage,
+        if let encrypted = group.lastMessage,
            let decrypted = AESHelper.shared.decrypt(base64CipherText: encrypted),
            !decrypted.isEmpty {
             return decrypted
         } else {
-            return chat.lastMessage ?? "No message yet"
+            return group.lastMessage ?? "No message yet"
         }
     }
-    
+
+
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            profileImage
+            Image(systemName: "person.2.circle.fill")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
                 .frame(width: 50, height: 50)
+                .foregroundColor(.gray)
                 .clipShape(Circle())
-            
+
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text(chat.name)
+                    Text(group.groupName)
                         .font(.headline)
                         .lineLimit(1)
-                    
+
                     Spacer()
-                    
+
                     Text(formattedTime)
                         .foregroundColor(.gray)
                         .font(.caption)
                 }
-                
+
                 Text(decryptedMessage)
                     .font(.subheadline)
                     .foregroundColor(.gray)
@@ -39,30 +43,10 @@ struct ChatItemView: View {
         }
         .padding(.vertical, 8)
     }
-    
-    // MARK: - Profile Image
-    
-    private var profileImage: some View {
-        Group {
-            if let base64 = chat.profilePictureBase64,
-               let data = Data(base64Encoded: base64.replacingOccurrences(of: "data:image/png;base64,", with: "")),
-               let uiImage = UIImage(data: data) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } else {
-                Image(systemName: "person.crop.circle.fill")
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .foregroundStyle(.gray)
-            }
-        }
-    }
-    
+
     // MARK: - Time Formatting
-    
     private var formattedTime: String {
-        guard let rawTime = chat.lastMessageTime else { return "" }
+        guard let rawTime = group.lastMessageTime else { return "" }
 
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
@@ -81,7 +65,7 @@ struct ChatItemView: View {
             return "Yesterday"
         } else if calendar.isDate(date, equalTo: Date(), toGranularity: .weekOfYear) {
             let weekdayFormatter = DateFormatter()
-            weekdayFormatter.dateFormat = "EEEE" // e.g., "Monday"
+            weekdayFormatter.dateFormat = "EEEE"
             return weekdayFormatter.string(from: date)
         } else {
             let fullFormatter = DateFormatter()
@@ -89,17 +73,4 @@ struct ChatItemView: View {
             return fullFormatter.string(from: date)
         }
     }
-}
-
-
-#Preview {
-    ChatItemView(chat: ChatPreview(
-        id: 101,
-        withUsername: "ali123",
-        name: "Ali Raza",
-        withUsernameId: 4,
-        profilePictureBase64: nil, // You can test with actual base64 string
-        lastMessage: "Hey! Let's catch up later today.",
-        lastMessageTime: "2025-06-20T14:36:11.220367"
-    ))
 }

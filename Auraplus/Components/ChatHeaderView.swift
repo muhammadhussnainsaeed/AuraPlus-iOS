@@ -55,20 +55,22 @@ struct ChatHeaderView: View {
                 Text(name)
                     .font(.system(size: 17, weight: .bold))
 
-                if typingStatus == .typing {
-                    Text(typingStatus.label)
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                } else {
-                    HStack(spacing: 5) {
-                        Circle()
-                            .fill(status.color)
-                            .frame(width: 8, height: 8)
-                        Text(status.label)
-                            .font(.caption)
-                            .foregroundColor(.gray)
+                // ✅ Typing overrides status
+                Group {
+                    if typingStatus == .typing {
+                        Text("Typing...")
+                    } else {
+                        HStack(spacing: 5) {
+                            Circle()
+                                .fill(status.color)
+                                .frame(width: 8, height: 8)
+                            Text(status.label)
+                        }
                     }
                 }
+                .font(.caption)
+                .foregroundColor(.gray)
+                .animation(.easeInOut(duration: 0.2), value: typingStatus)
             }
 
             Spacer()
@@ -76,7 +78,6 @@ struct ChatHeaderView: View {
         .padding(.vertical, 6)
     }
 
-    // MARK: - Profile Image Logic
     private var profileImage: some View {
         if let base64 = profilePictureBase64,
            let data = Data(base64Encoded: base64.replacingOccurrences(of: "data:image/png;base64,", with: "")),
@@ -91,7 +92,7 @@ struct ChatHeaderView: View {
                 Image(systemName: "person.crop.circle.fill")
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .foregroundColor(.gray) // ensures it appears gray even in dark mode
+                    .foregroundColor(.gray)
             )
         }
     }
